@@ -3,7 +3,7 @@ To use this program you'll need to have Postgres and Go installed.
 
 Create a `~/.gatorconfig.json` containing `{"db_url": "postgres://your-information", "current_user_name": "your-name"}`
 
-Then run `go install github.com/NHMosko/gator`.
+Then run `go install github.com/nhmosko/gator@latest`.
 
 ## How to use:
 `gator help` will give you a full list of commands.
