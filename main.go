@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"os"
 
@@ -47,7 +48,7 @@ func main() {
 	cmds.register("follow", middlewareLoggedIn(handlerFollow))
 	cmds.register("following", middlewareLoggedIn(handlerFollowing))
 	cmds.register("unfollow", middlewareLoggedIn(handlerUnfollow))
-
+	cmds.register("browse", middlewareLoggedIn(handlerBrowse))
 
 	if len(os.Args) < 2 {
 		log.Fatal("Usage: cli <command> [args...]")
@@ -55,6 +56,16 @@ func main() {
 
 	cmdName := os.Args[1]
 	cmdArgs := os.Args[2:]
+
+	if cmdName == "help" {
+		fmt.Println("Available commands:")
+		for cmd, _ := range cmds.registeredCommands {
+			if cmd != "reset" {
+				fmt.Println(cmd)
+			}
+		}
+		os.Exit(0)
+	}
 
 	err = cmds.run(state, command{Name: cmdName, Args: cmdArgs})
 	if err != nil {

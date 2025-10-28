@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -219,5 +220,60 @@ func handlerUnfollow(s *State, cmd command, user database.User) error {
 	}
 
 	fmt.Println("successfully unfollowed", feed.Name)
+	return nil
+}
+
+func handlerBrowse(s *State, cmd command, user database.User) error {
+	var limit int64
+	if len(cmd.Args) != 1 {
+		fmt.Printf("optional parameter: %s <limit>\n", cmd.Name)
+		limit = 2
+	} else {
+		arg, err := strconv.ParseInt(cmd.Args[0], 0, 64)
+		if err != nil {
+			return fmt.Errorf("%s is not a valid number", cmd.Args[0])
+		}
+		limit = arg
+	}
+
+	following, err := s.db.GetFeedFollowsForUser(context.Background(), user.ID)
+	if err != nil {
+		return fmt.Errorf("unable to get followed feeds: %w", err)
+	}
+
+	if len(following) == 0 {
+		fmt.Printf("user %s doesn't follow any feeds\ntry running 'follow <feed-url>'\n", user.Name)
+		return nil
+	}
+
+	for _, feed := range following {
+		posts, err := s.db.GetPostsForUser(context.Background(), database.GetPostsForUserParams{
+			FeedID: feed.FeedID,
+			Limit: int32(limit),
+		})
+		if err != nil {
+			return fmt.Errorf("unable to get posts for %s: %w", feed.FeedName, err)
+		}
+
+		if len(posts) == 0 {
+			//fmt.Println("No posts from", feed.FeedName)
+			continue
+		}
+
+		fmt.Println()
+		fmt.Println("--------------------------------------------")
+		fmt.Println("POSTS FROM", feed.FeedName)
+		fmt.Println("--------------------------------------------")
+		for _, post := range posts {
+			fmt.Println(post.Title)
+			fmt.Println(post.Url)
+			if post.PublishedAt.Valid {
+				fmt.Println(post.PublishedAt.Time.Date())
+			}
+			fmt.Println()
+		}
+	}
+
+
 	return nil
 }

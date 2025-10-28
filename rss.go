@@ -2,12 +2,18 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"encoding/xml"
 	"fmt"
 	"html"
 	"io"
+	"log"
 	"net/http"
+	"strings"
 	"time"
+
+	"github.com/google/uuid"
+	"github.com/nhmosko/gator/internal/database"
 )
 
 type RSSFeed struct {
@@ -83,12 +89,40 @@ func scrapeFeeds(s *State) error {
 		return fmt.Errorf("unable to list users: %w", err)
 	}
 
-	fmt.Println()
-	fmt.Println(feed.Channel.Title, "posts:")
 	for _, item := range feed.Channel.Items {
-		fmt.Println(item.Title)
+		publishedAt := sql.NullTime{}
+		if t, err := time.Parse(time.RFC1123Z, item.PubDate); err == nil {
+			publishedAt = sql.NullTime{
+				Time:  t,
+				Valid: true,
+			}
+		}
+		if t, err := time.Parse(time.RFC1123, item.PubDate); err == nil {
+			publishedAt = sql.NullTime{
+				Time:  t,
+				Valid: true,
+			}
+		}
+
+		_, err = s.db.CreatePost(context.Background(), database.CreatePostParams{
+			ID: uuid.New(),
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+			Title: item.Title,
+			Url: item.Link,
+			Description: item.Description,
+			PublishedAt: publishedAt,
+			FeedID: feedData.ID,
+		})
+		if err != nil {
+			if strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
+				continue
+			}
+			log.Printf("Couldn't create post: %v", err)
+			continue
+		}
 	}
-	fmt.Println()
-	
+
+	fmt.Println(".")
 	return nil
 }
