@@ -23,7 +23,9 @@ Once you are logged in you may use:
 `gator following` to see your followed feeds.
 
 To actually see the posts:
+
 run `gator agg <interval>` for a while to fetch the posts (I usually use 1s as the interval)
+
 Finally run `gator browse [optional <limit>]` to see the posts from your followed feeds.
 
 !!! `gator reset` deletes everything from the database (careful).
