@@ -1,4 +1,4 @@
-module github.com/NHMosko/gator
+module github.com/nhmosko/gator
 
 go 1.25.3
 
