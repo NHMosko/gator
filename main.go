@@ -60,9 +60,7 @@ func main() {
 	if cmdName == "help" {
 		fmt.Println("Available commands:")
 		for cmd, _ := range cmds.registeredCommands {
-			if cmd != "reset" {
-				fmt.Println(cmd)
-			}
+			fmt.Println(cmd)
 		}
 		os.Exit(0)
 	}
